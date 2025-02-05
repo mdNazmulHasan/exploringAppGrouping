@@ -8,15 +8,41 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+    @State private var message = "Waiting for response..."
+        @Environment(\.scenePhase) private var scenePhase // Detect when AppA becomes active
+
+        var body: some View {
+            VStack {
+                Text(message)
+                    .padding()
+
+                Button("Open AppB") {
+                    openAppB()
+                }
+            }
+            .onAppear {
+                readSharedData()
+            }
+            .onChange(of: scenePhase) { newPhase in
+                if newPhase == .active {
+                    readSharedData() // Refresh response when AppA becomes active
+                }
+            }
         }
-        .padding()
-    }
+
+        func openAppB() {
+            if let url = URL(string: "appB://open") {
+                UIApplication.shared.open(url)
+            }
+        }
+
+        func readSharedData() {
+            if let sharedDefaults = UserDefaults(suiteName: "group.nazmul.shared") {
+                if let response = sharedDefaults.string(forKey: "appBResponse") {
+                    message = "Response: \(response)"
+                }
+            }
+        }
 }
 
 #Preview {
